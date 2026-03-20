@@ -37,7 +37,7 @@ Automatically detect and load model-specific behavior patterns at session initia
 ## Default Workflow
 
 ```
-1. Parse announcement → 2. Match pattern → 3. Load file → 4. Apply guidance
+1. Parse announcement → 2. Match pattern → 3. Load file → 4. Integrate → 5. Apply
 ```
 
 ### Step-by-Step
@@ -45,7 +45,52 @@ Automatically detect and load model-specific behavior patterns at session initia
 1. **Parse announcement**: Look for `[SYSTEM: CURRENT_MODEL_ANNOUNCEMENT - You are {MODEL_NAME} ({MODEL_ID})]`
 2. **Match pattern**: Check MODEL_NAME and MODEL_ID against routing table
 3. **Load file**: Read corresponding file from `references/` directory
-4. **Apply**: Internalize patterns for all subsequent thinking and responses
+4. **Integrate**: Fuse the loaded guidance with ALL existing requirements (CLAUDE.md, user instructions, project rules). See Integration Principle below.
+5. **Apply**: Act on the integrated, unified behavior profile for all subsequent thinking and responses
+
+---
+
+## ⚠️ Integration Principle — NO Binary Choice
+
+> **CRITICAL: Loading the guidance file does NOT replace or override existing requirements. It ADDS to and ENRICHES them.**
+
+After loading the guidance file, you MUST perform a **synthesis step**:
+
+### What Integration Means
+
+| Scenario | WRONG (binary) | CORRECT (integrated) |
+|----------|----------------|----------------------|
+| Guidance says "be concise"; CLAUDE.md says "add type hints" | Pick one style | Be concise AND add type hints |
+| Guidance prefers certain reasoning style; user gave explicit instructions | Follow guidance OR follow user | Let guidance shape HOW you follow user instructions |
+| Guidance defines communication tone; project has coding standards | Apply tone OR apply standards | Use guidance tone while strictly following coding standards |
+
+### Integration Algorithm
+
+```
+existing_context = {CLAUDE.md rules, user instructions, project conventions, session history}
+model_guidance   = loaded from references/<model-family>.md
+
+final_behavior   = merge(existing_context, model_guidance)
+                   # Where conflicts arise: user/project rules WIN
+                   # Where guidance enriches: apply guidance on top
+                   # Never discard either source
+```
+
+### Conflict Resolution Priority
+
+1. **Explicit user instruction** (highest priority — always respected)
+2. **Project rules** (CLAUDE.md, AGENTS.md)
+3. **Model guidance** (enriches, does not override)
+4. **Default model behavior** (lowest priority)
+
+### Anti-Patterns to Avoid
+
+- ❌ "The guidance says X, so I'll ignore the project rule Y"
+- ❌ "There's a conflict, so I'll only follow the guidance"
+- ❌ "I'll switch to guidance mode and ignore prior instructions"
+- ✅ "The guidance adds insight Z — I'll apply it while keeping rule Y intact"
+
+---
 
 ## Conditional Branches
 
@@ -118,7 +163,10 @@ references/
 
 ## Validation Checklist
 
-After loading:
+After loading and integrating:
 - [ ] Model family correctly identified from announcement
 - [ ] Appropriate guidance file loaded without errors
-- [ ] Thinking patterns align with guidance content
+- [ ] **Guidance integrated with (not replacing) existing requirements**
+- [ ] **No existing CLAUDE.md / user instructions discarded due to guidance**
+- [ ] **Conflict resolution followed correct priority order**
+- [ ] Unified behavior profile internalized for all subsequent responses
