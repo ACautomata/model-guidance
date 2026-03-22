@@ -36,17 +36,22 @@ Automatically detect and load model-specific behavior patterns at session initia
 
 ## Default Workflow
 
+> ⚠️ **Loading is INCOMPLETE until all 5 steps are executed. Invoking this skill ≠ loading complete.**
+> Do NOT respond to the user's task until Step 5 is finished.
+
 ```
-1. Parse announcement → 2. Match pattern → 3. Load file → 4. Integrate → 5. Apply
+1. Parse announcement → 2. Match pattern → 3. Load file → 4. Integrate → 5. Apply + confirm
+                                                ↑
+                                    REQUIRES Read tool call
 ```
 
 ### Step-by-Step
 
 1. **Parse announcement**: Look for `[SYSTEM: CURRENT_MODEL_ANNOUNCEMENT - You are {MODEL_NAME} ({MODEL_ID})]`
 2. **Match pattern**: Check MODEL_NAME and MODEL_ID against routing table
-3. **Load file**: Read corresponding file from `references/` directory
+3. **Load file**: **Use the `Read` tool** to load the matched file from `references/`. Skipping this tool call = incomplete loading.
 4. **Integrate**: Fuse the loaded guidance with ALL existing requirements (CLAUDE.md, user instructions, project rules). See Integration Principle below.
-5. **Apply**: Act on the integrated, unified behavior profile for all subsequent thinking and responses
+5. **Apply + confirm**: Internalize the unified behavior profile. Then output internally: `[model-guidance: {MODEL_FAMILY} loaded, integrated]` before proceeding.
 
 ---
 
@@ -94,12 +99,14 @@ final_behavior   = merge(existing_context, model_guidance)
 
 ## Conditional Branches
 
-| Condition | Action |
-|-----------|--------|
-| Announcement found + pattern matched | Load guidance file |
-| Announcement found + no match | Proceed without guidance; consider logging for future |
-| No announcement | Skip gracefully; use default behavior |
-| Multiple patterns match | Use first match in routing table order |
+| Condition | Steps to Complete |
+|-----------|-------------------|
+| Announcement found + pattern matched | All 5 steps |
+| Announcement found + no match | Steps 1-2, skip 3, then steps 4-5 with defaults |
+| No announcement | Skip steps 1-3; execute steps 4-5 with existing context only |
+| Multiple patterns match | Use first match in routing table order, then all 5 steps |
+
+> **No announcement does NOT mean skip the skill.** Steps 4-5 (integrate + apply existing context) always run.
 
 ## Model Family Routing
 
@@ -156,17 +163,17 @@ references/
 
 | Issue | Resolution |
 |-------|------------|
-| No announcement detected | Skip gracefully; use default behavior |
+| No announcement detected | Skip steps 1-3; still execute steps 4-5 with existing context |
 | Unknown model family | Proceed without guidance; log for future mapping |
 | File not found | Verify `references/` directory exists; check file names |
 | Pattern matches wrong family | Check routing table order; patterns are matched top-to-bottom |
 
-## Validation Checklist
+## ✅ Completion Gate
 
-After loading and integrating:
-- [ ] Model family correctly identified from announcement
-- [ ] Appropriate guidance file loaded without errors
-- [ ] **Guidance integrated with (not replacing) existing requirements**
-- [ ] **No existing CLAUDE.md / user instructions discarded due to guidance**
-- [ ] **Conflict resolution followed correct priority order**
-- [ ] Unified behavior profile internalized for all subsequent responses
+> **Do NOT proceed to the user's task until all items are checked.**
+
+- [ ] Step 3 Read tool call executed (or confirmed skipped due to no match)
+- [ ] Guidance integrated with (not replacing) existing requirements
+- [ ] No existing CLAUDE.md / user instructions discarded
+- [ ] Conflict resolution followed correct priority order
+- [ ] Output confirmation: `[model-guidance: {MODEL_FAMILY} loaded]`
