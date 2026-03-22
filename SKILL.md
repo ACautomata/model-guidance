@@ -1,20 +1,28 @@
 ---
 name: model-guidance
-description: Use when starting any session or new conversation. Must be invoked before the first response and before any other action, including clarifying questions.
+description: Use when starting any session, new conversation, or at first message received. Trigger at session initialization, model identity announcement, or when user mentions model-specific behavior.
 ---
 
 # Model Guidance
 
-## ⚠️ MANDATORY: Session Initialization Hook
+## ⚠️ MANDATORY: Auto-Trigger at Session Start
 
-**This skill MUST be invoked at the very start of every session before ANY other action.**
+**This skill MUST be auto-invoked at the start of EVERY session.**
 
-Trigger conditions (ANY of these means invoke immediately):
-- Session just started (first message received)
-- New conversation begins
-- User mentions "model guidance" or similar
+### Keywords for Discovery
 
-Do NOT proceed with any other task until model guidance is loaded.
+Session start triggers: `first message`, `new session`, `conversation start`, `initializing`, `starting up`
+
+Model-related triggers: `model announcement`, `system prompt`, `Claude`, `GPT`, `GLM`, `DeepSeek`, `Gemini`, `Kimi`, `MiniMax`, `model family`, `behavior pattern`, `thinking style`
+
+### Execution Priority
+
+**INVOKE IMMEDIATELY when ANY of these occur:**
+- First user message in any context
+- `[SYSTEM: CURRENT_MODEL_ANNOUNCEMENT...]` detected in context
+- User explicitly mentions model guidance or behavior patterns
+
+Do NOT proceed with any other task until model guidance is fully loaded (see Completion Gate).
 
 ---
 
@@ -22,17 +30,22 @@ Do NOT proceed with any other task until model guidance is loaded.
 
 Automatically detect and load model-specific behavior patterns at session initialization. Routes model identity to appropriate guidance file containing thinking styles, behavior preferences, and interaction patterns optimized for that model family.
 
-## When to Use
+## When to Use (Trigger Conditions)
 
-- **Session start** — before first user interaction
-- **Model switch** — when model identity changes mid-session
-- **Explicit request** — user asks to load model guidance
+**ALWAYS trigger at:**
+- **First message in any session** — regardless of content
+- **Model identity announcement detected** — `[SYSTEM: CURRENT_MODEL_ANNOUNCEMENT...]`
+- **Session/conversation start** — before any response
+
+**Also trigger when:**
+- User explicitly mentions "model guidance", "behavior pattern", "thinking style"
+- Model switch occurs mid-session
 
 ## When NOT to Use
 
-- Mid-conversation queries about model capabilities
-- Model comparison or debugging questions
-- General AI questions unrelated to behavior patterns
+- Mid-conversation technical queries (after initial greeting)
+- Model comparison discussions
+- General AI capability questions (unless at session start)
 
 ## Default Workflow
 
