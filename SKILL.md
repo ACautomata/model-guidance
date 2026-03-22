@@ -1,6 +1,6 @@
 ---
 name: model-guidance
-description: ALWAYS invoke at session start when [SYSTEM: CURRENT_MODEL_ANNOUNCEMENT] appears. Auto-detects model family (GLM, Claude, GPT, DeepSeek, etc.) and loads thinking patterns. MUST happen before ANY user interaction - no exceptions.
+description: Use when starting any session or new conversation. Must be invoked before the first response and before any other action, including clarifying questions.
 ---
 
 # Model Guidance
@@ -10,8 +10,8 @@ description: ALWAYS invoke at session start when [SYSTEM: CURRENT_MODEL_ANNOUNCE
 **This skill MUST be invoked at the very start of every session before ANY other action.**
 
 Trigger conditions (ANY of these means invoke immediately):
-- `[SYSTEM: CURRENT_MODEL_ANNOUNCEMENT]` appears in context
-- Session just started (first message)
+- Session just started (first message received)
+- New conversation begins
 - User mentions "model guidance" or similar
 
 Do NOT proceed with any other task until model guidance is loaded.
